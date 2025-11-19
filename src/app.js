@@ -1,18 +1,28 @@
-const express = require('express');
+const express = require("express");
 
 const app = express(); // instance of express.js application
 
-app.use("/",(req, res)=>{ // request/response handler function
-    res.send("Hello from the Dashboard!")
+app.use("/user",(req, res)=>{
+    res.send("hahahaha")
 })
-app.use("/hello",(req, res)=>{ // request/response handler function
-    res.send("Hello hello hello!!")
-})
+app.get("/user", (req, res) => {
+  res.send({ firstName: "Mouli", lastName: "dharan" });
+});
 
-app.use("/test",(req, res)=>{ // request/response handler function
-    res.send("Hello from the server!!")
-})
+app.post("/user", (req, res) => {
+  //saving data to DB
+  console.log("Data sucessfully saved to database!!");
+  res.send("Data sucessfully saved to database!!");
+});
 
-app.listen(3000, () =>{
-    console.log("Server is successfull listening on port 3000...");
+app.delete("/user", (req, res) => {
+  res.send("Deleted successfully!!");
+});
+app.use("/test", (req, res) => {
+  // request/response handler function
+  res.send("Hello from the server!!");
+});
+
+app.listen(3000, () => {
+  console.log("Server is successfull listening on port 3000...");
 });
