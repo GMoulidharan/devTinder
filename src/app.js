@@ -2,32 +2,38 @@ const express = require("express");
 
 const app = express(); // instance of express.js application
 
-// app.use("/route", rH, rH2, rH3, rH4)
-// app.use("/route", [rH, rH2], rH3, rH4)
-// app.use("/route", rH, [rH2, rH3], rH4)
-app.use(
-    "/user",
-    (req, res, next) =>{
-       console.log("Handling the route user!!");
+
+// app.use( "/user",(req, res, next) =>{
+//        console.log("Handling the route user!!");
+//       //  res.send("Response!!")
+//       next();
+//     }, 
+// )
+// app.use( "/user",(req, res, next) =>{
+//        console.log("Handling the route user!!");
+//        res.send("Independent 2nd route handler!!")
+      
+//     }, 
+// )
+
+app.use( "/",(req, res, next) =>{
+       console.log("Handling the route(Middle ware)!!");
       //  res.send("Response!!")
       next();
-      
-    },
+    }, 
+)
+app.get( "/user",
+   (req, res, next) =>{
+       console.log("Handling the route /user (Middle ware)!!");
+      //  res.send("Response!!")
+      next();
+    }, 
     (req, res, next) =>{
-       console.log("Handling the route user2!!");
-      //  res.send("2nd Response!!");
-       next();
+      next();
     },
-    (req, res, next) =>{
-       console.log("Handling the route user3!!");
-      //  res.send("2nd Response!!");
-       next();
+    (req, res) =>{
+      res.send("Finally reached route handler")
     },
-    (req, res, next) =>{
-       console.log("Handling the route user4!!");
-       res.send("2nd Response!!");
-      //  next();
-    }
 )
 
 app.listen(3000, () => {
