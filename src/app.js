@@ -76,12 +76,12 @@ app.patch("/user", async(req, res) =>{
   const userId = req.body.userId;
   const data = req.body; 
   try {
-    const user = await User.findByIdAndUpdate({_id: userId}, data, {returnDocument:'after'});
+    const user = await User.findByIdAndUpdate({_id: userId}, data, {returnDocument:'after',runValidators:'true'});
     console.log(user);// before log older of the document, default is before
     
     res.send("User Updated successfully");
   } catch (err) {
-    res.status(404).send("Something went wrong");
+    res.status(404).send("Updated failded: "+ err.message);
   }
 
 })
