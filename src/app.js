@@ -77,7 +77,7 @@ app.patch("/user/:userId", async (req, res) => {
 
   try {
     const ALLOEWD_UPDATES = [
-      "photourl",
+      "photoUrl",
       "about",
       "gender",
       "age",
@@ -103,7 +103,7 @@ app.patch("/user/:userId", async (req, res) => {
 
     res.send("User Updated successfully");
   } catch (err) {
-    res.status(404).send("Updated failded: " + err.message);
+    res.status(404).send("Updated failed: " + err.message);
   }
 });
 connectDB()
