@@ -56,7 +56,6 @@ app.get("/feed", async (req, res) => {
   }
 });
 
-
 //delete a user from a database
 app.delete("/user", async (req, res) => {
   const userId = req.body.userId;
@@ -72,19 +71,41 @@ app.delete("/user", async (req, res) => {
 
 //Update data of the user
 
-app.patch("/user", async(req, res) =>{
-  const userId = req.body.userId;
-  const data = req.body; 
+app.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
+  const data = req.body;
+
   try {
-    const user = await User.findByIdAndUpdate({_id: userId}, data, {returnDocument:'after',runValidators:'true'});
-    console.log(user);// before log older of the document, default is before
-    
+    const ALLOEWD_UPDATES = [
+      "photourl",
+      "about",
+      "gender",
+      "age",
+      "skills",
+    ];
+
+    const isUpdateAllowed = Object.keys(data).every((k) =>
+      ALLOEWD_UPDATES.includes(k)
+    );
+
+    if (!isUpdateAllowed) {
+      throw new Error("Update not allowed");
+    }
+
+    if(data?.skills.length >5){
+      throw new Error("Skills cannot exceed 5")
+    }
+    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+      returnDocument: "after",
+      runValidators: "true",
+    });
+    console.log(user); // before log older of the document, default is before
+
     res.send("User Updated successfully");
   } catch (err) {
-    res.status(404).send("Updated failded: "+ err.message);
+    res.status(404).send("Updated failded: " + err.message);
   }
-
-})
+});
 connectDB()
   .then(() => {
     console.log("Database connection established...");
