@@ -5,7 +5,7 @@ const { validateSignUpdata } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-
+const {userAuth} = require("./middlewares/auth")
 const app = express(); // instance of express.js application
 
 app.use(express.json());
@@ -40,18 +40,20 @@ app.post("/login", async (req, res) => {
     const user =await User.findOne({ emailId: emailId });
     
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new Error("Invalid credentials"); 
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await user.validatePassword(password)
 
     if (isValidPassword) {
 
       // Create a JWT token
-      const token = await jwt.sign({_id: user._id}, "Dev@Tinder$567")
+      const token = await user.getJWT()
       
       //Add the token to cookie and send the response back to the user
-      res.cookie("token", token)
+      res.cookie("token", token,{
+        expires: new Date(Date.now() + 8 * 3600000) 
+      })
       res.send("Login sucessfull !!!")
     }
     else{
@@ -62,114 +64,26 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/profile", async(req, res)=>{
+app.get("/profile", userAuth, async(req, res)=>{
   try {
-    const cookies = req.cookies;
 
-    const {token} = cookies;
-    if(!token){
-      throw new Error("Invalid Token")
-    }
-
-    const decodedMessage = await jwt.verify(token, "Dev@Tinder$567")
-
-    const{_id}= decodedMessage;
-
-
-    const user =  await User.findById(_id);
-    if(!user){
-      throw new Error("User does not exist")
-    }
-
+    const user =  req.user
     res.send(user);
-    
-    
+
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
   }
 })
-//Get user by email
 
-app.get("/user", async (req, res) => {
-  const userId = req.body._id;
-  const userEmail = req.body.emailId;
-  try {
-    const user = await User.findById({ _id: userId });
-    if (!user) {
-      res.status(404).send("Usernot found");
-    } else {
-      res.send(user);
-    }
-  } catch (err) {
-    res.status(404).send("Something went wrong");
-  }
-  // try{
-  //   const user = await User.find({emailId: userEmail});
-  //   if(user.length === 0){
-  //     res.status(404).send("Usernot found")
-  //   }
-  //   else{
-  //     res.send(user);
-  //   }
-  // }catch(err){
-  //   res.status(404).send("Something went wrong")
-  // }
-});
-//Feed API - GET /feed -get all the users from the DB
+app.post("/sendConnectionRequest",userAuth, async(req, res) =>{
+  const user = req.user;
 
-app.get("/feed", async (req, res) => {
-  try {
-    const user = await User.find({});
-    res.send(user);
-  } catch (err) {
-    res.status(404).send("Something went wrong");
-  }
-});
+  console.log("sending connection request"); 
 
-//delete a user from a database
-app.delete("/user", async (req, res) => {
-  const userId = req.body.userId;
+  res.send(user.firstName + "Sent the connection request") 
+  
+})
 
-  try {
-    const user = await User.findByIdAndDelete(userId);
-
-    res.send("User deleted successfully");
-  } catch (err) {
-    res.status(404).send("Something went wrong");
-  }
-});
-
-//Update data of the user
-
-app.patch("/user/:userId", async (req, res) => {
-  const userId = req.params?.userId;
-  const data = req.body;
-
-  try {
-    const ALLOEWD_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
-
-    const isUpdateAllowed = Object.keys(data).every((k) =>
-      ALLOEWD_UPDATES.includes(k)
-    );
-
-    if (!isUpdateAllowed) {
-      throw new Error("Update not allowed");
-    }
-
-    if (data?.skills.length > 5) {
-      throw new Error("Skills cannot exceed 5");
-    }
-    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
-      returnDocument: "after",
-      runValidators: "true",
-    });
-    console.log(user); // before log older of the document, default is before
-
-    res.send("User Updated successfully");
-  } catch (err) {
-    res.status(404).send("Updated failed: " + err.message);
-  }
-});
 connectDB()
   .then(() => {
     console.log("Database connection established...");
