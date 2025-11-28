@@ -1,20 +1,27 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { validateSignUpdata } = require("./utils/validation");
+const bcrypt = require("bcrypt")
 const app = express(); // instance of express.js application
 
 app.use(express.json());
 
 app.post("/signUp", async (req, res) => {
-  const userObj = req.body;
-
-  //Creating a new instance of a user model
-  const user = new User(userObj);
   try {
+    validateSignUpdata(req);
+    
+    const { firstName, lastName, emailId, password } = req.body;
+    
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    //Creating a new instance of a user model
+    const user = new User({firstName, lastName, emailId, password:passwordHash});
+
     await user.save();
     res.send("User added Successfully");
   } catch (err) {
-    res.status(400).send("Error saving the User: " + err.message);
+    res.status(400).send("ERROR: " + err.message);
   }
 });
 
@@ -76,13 +83,7 @@ app.patch("/user/:userId", async (req, res) => {
   const data = req.body;
 
   try {
-    const ALLOEWD_UPDATES = [
-      "photoUrl",
-      "about",
-      "gender",
-      "age",
-      "skills",
-    ];
+    const ALLOEWD_UPDATES = ["photoUrl", "about", "gender", "age", "skills"];
 
     const isUpdateAllowed = Object.keys(data).every((k) =>
       ALLOEWD_UPDATES.includes(k)
@@ -92,8 +93,8 @@ app.patch("/user/:userId", async (req, res) => {
       throw new Error("Update not allowed");
     }
 
-    if(data?.skills.length >5){
-      throw new Error("Skills cannot exceed 5")
+    if (data?.skills.length > 5) {
+      throw new Error("Skills cannot exceed 5");
     }
     const user = await User.findByIdAndUpdate({ _id: userId }, data, {
       returnDocument: "after",
