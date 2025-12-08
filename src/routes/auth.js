@@ -18,9 +18,9 @@ authRouter.post("/signUp", async (req, res) => {
       firstName,
       lastName,
       emailId,
-      password, passwordHash
+      password: passwordHash
     });
-
+    
     await user.save();
     res.send("User added Successfully");
   } catch (err) {
