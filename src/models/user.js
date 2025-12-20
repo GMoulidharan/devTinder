@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
         type:String,
         //Custom validation function- called only for a new user added not work for Patch by default
         validate(value){
-            if(!["male","female","others"].includes(value)){
+            if(!["male","female","others"].includes(value.toLowerCase())){
                 throw new Error("Gender is not valid")
             }
         }
